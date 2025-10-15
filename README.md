@@ -31,6 +31,9 @@ Built with scalability, adaptability, and design elegance in mind, this project 
 ```bash
 npm install -g node-red
 
+Then open Node-RED, install the package node-red-contrib-uibuilder, import your flow, and deploy.
+Access the dashboard at:
+
 http://localhost:1880/ProjetoSaudeV2
 
 
