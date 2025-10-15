@@ -1,35 +1,38 @@
-<h1 align="center">🩺 ProjetoSaudeV2</h1>
+<h1 align="center">🩺 ProjectSaudeV2</h1>
 
 <p align="center">
-  <b>Sistema Futurista de Monitorização de Pacientes</b><br>
+  <b>Futuristic Patient Monitoring System</b><br>
   <i>Node-RED · uibuilder · Python · SQLite</i>
 </p>
 
 ---
 
-### 🧠 Visão Geral
-**ProjetoSaudeV2** é um sistema interativo e modular para monitorização de pacientes em tempo real, combinando o poder visual do **Node-RED**, o frontend dinâmico do **uibuilder** e a automação em **Python**.
+### 🧠 Overview
+**ProjectSaudeV2** is an interactive and modular real-time patient monitoring platform that merges the visual power of **Node-RED**, the responsive capabilities of **uibuilder**, and the automation potential of **Python**.  
 
-O objetivo é demonstrar um fluxo completo — da geração e processamento de sinais vitais até à apresentação visual e armazenamento local.
-
----
-
-### ⚙️ Tecnologias
-| Componente | Função |
-|-------------|--------|
-| 🟥 **Node-RED** | Motor de automação e integração de fluxos |
-| 🟦 **uibuilder** | Frontend dinâmico (HTML/CSS/JS responsivo) |
-| 🐍 **Python** | Simulação e envio de dados em tempo real |
-| 💾 **SQLite** | Base de dados local para persistência de sinais vitais |
+It showcases a complete data flow — from the simulation and processing of vital signs to dynamic visualization and intelligent storage — representing a bridge between healthcare and modern digital ecosystems.  
+Built with scalability, adaptability, and design elegance in mind, this project serves as a conceptual foundation for next-generation health-tech interfaces.
 
 ---
 
-### 🚀 Estrutura do Projeto
+### ⚙️ Core Technologies
+| Component | Purpose |
+|------------|----------|
+| 🟥 **Node-RED** | Automation and real-time data flow orchestration |
+| 🟦 **uibuilder** | Responsive and dynamic web interface |
+| 🐍 **Python** | Simulation and data stream generation |
+| 💾 **SQLite** | Local persistence layer for vital-sign history |
 
+---
 
-
-### 🧩 Instalação Rápida
+### 🚀 Quick Start
 
 #### 🟥 1. Node-RED + uibuilder
 ```bash
 npm install -g node-red
+
+http://localhost:1880/ProjetoSaudeV2
+
+
+
+
