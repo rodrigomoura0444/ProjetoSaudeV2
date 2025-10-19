@@ -1,48 +1,46 @@
-#!/usr/bin/env python3
-"""simular_enviar.py
-Gera dados simulados de sinais vitais e envia via HTTP POST para o Node-RED.
-Exemplo de uso:
-  python simular_enviar.py --url http://localhost:1880/paciente --interval 1 --patients 3
-"""
-import time, json, argparse, random
 import requests
+import time
+import random
+import json
 
-def gerar_batch(n):
-    pacientes = [f'Paciente {chr(65+i)}' for i in range(n)]
-    dados = []
-    for i,p in enumerate(pacientes):
-        batimentos = int(round(60 + random.random()*60 + (i*3 - 3)))
-        temperatura = float(round(36 + random.random()*2 + i*0.1,1))
-        spo2 = int(round(92 + random.random()*8 - i))
-        pa_s = int(round(110 + random.random()*20))
-        pa_d = int(round(70 + random.random()*15))
-        dados.append({
-            'paciente': p,
-            'batimentos': batimentos,
-            'temperatura': temperatura,
-            'spo2': spo2,
-            'pa': {'sistolica': pa_s, 'diastolica': pa_d},
-            'ts': int(time.time()*1000)
-        })
-    return dados
+# URL do Node-RED (ajusta se for outro)
+NODE_RED_URL = "http://localhost:1880/paciente"
+
+# Lista de pacientes simulados
+PACIENTES = [
+    {"id": 1, "nome": "Maria Silva"},
+    {"id": 2, "nome": "João Pereira"},
+    {"id": 3, "nome": "Rita Costa"},
+    {"id": 4, "nome": "João Silva"},
+]
+
+def gerar_sinais(p):
+    return {
+        "paciente": p["nome"],
+        "batimentos": random.randint(60, 110),
+        "temperatura": round(random.uniform(36.0, 38.5), 1),
+        "spo2": random.randint(90, 100),
+        "pa": {
+            "sistolica": random.randint(110, 130),
+            "diastolica": random.randint(70, 85),
+        },
+        "ts": int(time.time() * 1000),
+    }
 
 def main():
-    parser = argparse.ArgumentParser()
-    parser.add_argument('--url', default='http://localhost:1880/paciente', help='URL do endpoint Node-RED (HTTP POST)')
-    parser.add_argument('--interval', type=float, default=1.0, help='Intervalo em segundos entre envios')
-    parser.add_argument('--patients', type=int, default=3, help='Número de pacientes simulados')
-    args = parser.parse_args()
-
-    print(f'Enviar para {args.url} cada {args.interval}s ({args.patients} pacientes)')
+    print(f"[INFO] A enviar dados simulados para {NODE_RED_URL}")
     while True:
-        batch = gerar_batch(args.patients)
-        payload = {'dados': batch}
+        batch = [gerar_sinais(p) for p in PACIENTES]
         try:
-            r = requests.post(args.url, json=payload, timeout=5)
-            print(f'Enviado: {len(batch)} pacientes | status: {r.status_code}')
+            r = requests.post(NODE_RED_URL, json=batch, timeout=5)
+            if r.status_code == 200:
+                print(f"[OK] Enviado batch com {len(batch)} pacientes")
+            else:
+                print(f"[ERRO] Código HTTP {r.status_code}: {r.text}")
         except Exception as e:
-            print('Erro ao enviar:', e)
-        time.sleep(args.interval)
+            print(f"[FALHA] {e}")
+        time.sleep(2)
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     main()
+

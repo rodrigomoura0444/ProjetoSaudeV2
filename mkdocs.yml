@@ -1,0 +1,15 @@
+site_name: ProjectHealthV2
+docs_dir: ./docs
+theme:
+  name: material
+  language: en
+nav:
+    - Home: index.md
+    - Architecture: arquitetura.md
+    - Node-RED: node-red.md
+    - UI Builder: uibuilder.md
+    
+    - Results: resultados.md
+    - References: referencias.md
+    - Appendices: anexos.md
+    - Objectives: objetivos.md

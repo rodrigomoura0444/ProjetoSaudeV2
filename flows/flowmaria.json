@@ -1,0 +1,235 @@
+[
+    {
+        "id": "5338ab8dc6c75608",
+        "type": "tab",
+        "label": "Flow 2",
+        "disabled": false,
+        "info": "",
+        "env": []
+    },
+    {
+        "id": "aa6022ea6961ee49",
+        "type": "inject",
+        "z": "5338ab8dc6c75608",
+        "name": "",
+        "props": [
+            {
+                "p": "payload"
+            },
+            {
+                "p": "topic",
+                "vt": "str"
+            }
+        ],
+        "repeat": "",
+        "crontab": "",
+        "once": false,
+        "onceDelay": 0.1,
+        "topic": "",
+        "payload": "",
+        "payloadType": "date",
+        "x": 160,
+        "y": 80,
+        "wires": [
+            [
+                "b0c03b62702c5e3f"
+            ]
+        ]
+    },
+    {
+        "id": "b0c03b62702c5e3f",
+        "type": "function",
+        "z": "5338ab8dc6c75608",
+        "name": "simulate_data_pacient",
+        "func": "// Gera dados simulados para apenas 1 paciente: Maria\nconst dados = {\n    paciente: 'Maria',\n    batimentos: Math.round(60 + Math.random() * 60),\n    temperatura: parseFloat((36 + Math.random() * 2).toFixed(1)),\n    spo2: Math.round(92 + Math.random() * 8),\n    pa: {\n        sistolica: Math.round(110 + Math.random() * 20),\n        diastolica: Math.round(70 + Math.random() * 15)\n    },\n    ts: Date.now()\n};\n\nflow.set('ultimo_batch', dados); // Guarda o último dado em memória de flow\n\nreturn { payload: { dados } };\n",
+        "outputs": 1,
+        "timeout": 0,
+        "noerr": 0,
+        "initialize": "",
+        "finalize": "",
+        "libs": [],
+        "x": 420,
+        "y": 120,
+        "wires": [
+            [
+                "d2d533751d5e1f69",
+                "ed62d6d4d75ccd5d"
+            ]
+        ]
+    },
+    {
+        "id": "d2d533751d5e1f69",
+        "type": "debug",
+        "z": "5338ab8dc6c75608",
+        "name": "debug 3",
+        "active": true,
+        "tosidebar": true,
+        "console": false,
+        "tostatus": false,
+        "complete": "false",
+        "statusVal": "",
+        "statusType": "auto",
+        "x": 680,
+        "y": 80,
+        "wires": []
+    },
+    {
+        "id": "ed62d6d4d75ccd5d",
+        "type": "function",
+        "z": "5338ab8dc6c75608",
+        "name": "convert_payload_to_insert_sqllite",
+        "func": "// --- Obter valores anteriores acumulados (se existirem) ---\nlet accHeartRate = flow.get('heart_rate_acc') || 0;\nlet accTemperature = flow.get('temperature_acc') || 0;\nlet accSpo2 = flow.get('spo2_acc') || 0;\nlet accSystolic = flow.get('systolic_acc') || 0;\nlet accDiastolic = flow.get('diastolic_acc') || 0;\n\n// --- Extrair dados recebidos ---\nlet d = msg.payload.dados || msg.payload;\nlet timestamp = d.ts || Date.now();\n\n// --- Atualizar acumulados ---\naccHeartRate += d.batimentos;\naccTemperature += d.temperatura;\naccSpo2 += d.spo2;\naccSystolic += d.pa?.sistolica || 0;\naccDiastolic += d.pa?.diastolica || 0;\n\n// --- Guardar acumulados no contexto de flow ---\nflow.set('heart_rate_acc', accHeartRate);\nflow.set('temperature_acc', accTemperature);\nflow.set('spo2_acc', accSpo2);\nflow.set('systolic_acc', accSystolic);\nflow.set('diastolic_acc', accDiastolic);\n\n// --- ID fixo do paciente (Maria = 1) ---\nlet id_patient = 1;\n\n// --- Criar query SQL para SQLite ---\nmsg.topic = `\nINSERT INTO vitals (id_patient, heart_rate, temperature, ts_ms, systolic, diastolic, spo2)\nVALUES (${id_patient}, ${d.batimentos}, ${d.temperatura}, ${timestamp}, ${d.pa.sistolica}, ${d.pa.diastolica}, ${d.spo2});\n`.trim();\n\n// --- Mensagem de saída para debug ---\nmsg.payload = {\n    acumulado: {\n        heart_rate: accHeartRate.toFixed(0),\n        temperature: accTemperature.toFixed(1),\n        spo2: accSpo2.toFixed(0),\n        systolic: accSystolic.toFixed(0),\n        diastolic: accDiastolic.toFixed(0)\n    },\n    paciente: d.paciente,\n    timestamp\n};\n\nreturn msg;\n",
+        "outputs": 1,
+        "timeout": 0,
+        "noerr": 0,
+        "initialize": "",
+        "finalize": "",
+        "libs": [],
+        "x": 640,
+        "y": 280,
+        "wires": [
+            [
+                "59a01a078e1ae154",
+                "5a6bddd3e1802383"
+            ]
+        ]
+    },
+    {
+        "id": "59a01a078e1ae154",
+        "type": "debug",
+        "z": "5338ab8dc6c75608",
+        "name": "debug 4",
+        "active": true,
+        "tosidebar": true,
+        "console": false,
+        "tostatus": false,
+        "complete": "topic",
+        "targetType": "msg",
+        "statusVal": "",
+        "statusType": "auto",
+        "x": 870,
+        "y": 200,
+        "wires": []
+    },
+    {
+        "id": "5a6bddd3e1802383",
+        "type": "sqlite",
+        "z": "5338ab8dc6c75608",
+        "mydb": "21d89fa95dce7b82",
+        "sqlquery": "msg.topic",
+        "sql": "",
+        "name": "db_saude",
+        "x": 800,
+        "y": 400,
+        "wires": [
+            [
+                "10aa6167cca42e45"
+            ]
+        ]
+    },
+    {
+        "id": "10aa6167cca42e45",
+        "type": "debug",
+        "z": "5338ab8dc6c75608",
+        "name": "debug 5",
+        "active": true,
+        "tosidebar": true,
+        "console": false,
+        "tostatus": false,
+        "complete": "topic",
+        "targetType": "msg",
+        "statusVal": "",
+        "statusType": "auto",
+        "x": 900,
+        "y": 500,
+        "wires": []
+    },
+    {
+        "id": "cbaa76bdfc4046bf",
+        "type": "uibuilder",
+        "z": "5338ab8dc6c75608",
+        "name": "uibuilder",
+        "topic": "",
+        "url": "projetosaudev2",
+        "okToGo": true,
+        "fwdInMessages": false,
+        "allowScripts": true,
+        "copyIndex": true,
+        "templateFolder": "blank",
+        "extTemplate": "",
+        "oldUrl": "ProjetoSaudeV2",
+        "reload": false,
+        "sourceFolder": "src",
+        "deployedVersion": "7.5.0",
+        "showMsgUib": false,
+        "title": "",
+        "descr": "",
+        "editurl": "vscode://file/Users/rodrigoferreiramoura/.node-red/uibuilder/ProjetoSaudeV2/?windowId=_blank",
+        "x": 620,
+        "y": 560,
+        "wires": [
+            [],
+            []
+        ]
+    },
+    {
+        "id": "ad5c5520ce7edec3",
+        "type": "inject",
+        "z": "5338ab8dc6c75608",
+        "name": "Start Simulation (1s)",
+        "props": [
+            {
+                "p": "payload"
+            }
+        ],
+        "repeat": "1",
+        "crontab": "",
+        "once": true,
+        "onceDelay": 0.5,
+        "topic": "",
+        "payload": "",
+        "payloadType": "date",
+        "x": 180,
+        "y": 420,
+        "wires": [
+            [
+                "dc94fb366274d763"
+            ]
+        ]
+    },
+    {
+        "id": "dc94fb366274d763",
+        "type": "function",
+        "z": "5338ab8dc6c75608",
+        "name": "Gerar sinais e enviar a uibuilder",
+        "func": "// Se receber msg.payload === 'external' -> passa dados recebidos pelo HTTP\nif(msg.payload && msg.payload.tipo === 'external_batch'){\n    // Dados já bem formados vindos de HTTP POST\n    return {payload: {tipo:'update_batch', dados: msg.payload.dados}};\n}\n// Caso contrário, gera dados simulados (3 pacientes)\nconst pacientes = ['Maria', 'João Pereira', 'Rita', 'João Silva'];\nconst datas = pacientes.map((p, i) => {\n  const batimentos = Math.round(60 + Math.random()*60 + (i*3 - 3));\n  const temperatura = parseFloat((36 + Math.random()*2 + i*0.1).toFixed(1));\n  const spo2 = Math.round(92 + Math.random()*8 - i);\n  const pa_s = Math.round(110 + Math.random()*20);\n  const pa_d = Math.round(70 + Math.random()*15);\n  return {\n    paciente: p,\n    batimentos, temperatura, spo2, pa: {sistolica: pa_s, diastolica: pa_d}, ts: Date.now()\n  };\n});\nflow.set('ultimo_batch', datas); // GUARDA o último batch em memória de flow\n\nreturn {payload: {dados: datas}};\n",
+        "outputs": 1,
+        "timeout": "",
+        "noerr": 0,
+        "initialize": "",
+        "finalize": "",
+        "libs": [],
+        "x": 430,
+        "y": 480,
+        "wires": [
+            [
+                "cbaa76bdfc4046bf"
+            ]
+        ]
+    },
+    {
+        "id": "21d89fa95dce7b82",
+        "type": "sqlitedb",
+        "db": "/Users/rodrigoferreiramoura/Desktop/ProjetoSaudeV2/db_projetosaudev2.db",
+        "mode": "RWC"
+    },
+    {
+        "id": "23628cd9304a50b5",
+        "type": "global-config",
+        "env": [],
+        "modules": {
+            "node-red-node-sqlite": "1.1.1",
+            "node-red-contrib-uibuilder": "7.5.0"
+        }
+    }
+]
